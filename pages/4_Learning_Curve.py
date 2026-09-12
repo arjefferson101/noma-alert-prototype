@@ -1,31 +1,30 @@
 from __future__ import annotations
 
-import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 
-from src.learning_curves import learning_curve
-from src.pipeline import build_scored_dataset
+from src.pipeline import LEARNING_CURVE_PATH, load_table
 
 
 st.set_page_config(page_title="How Much Data", layout="wide")
 
 
-@st.cache_data(show_spinner="Training repeated patient-level learning curves...")
-def data():
-    scored, _, _ = build_scored_dataset()
-    train = scored[(scored["cohort"] == "A") & (scored["split"] == "train")]
-    validation = scored[(scored["cohort"] == "A") & (scored["split"] == "validation")]
-    test = scored[(scored["cohort"] == "A") & (scored["split"] == "test")]
-    return learning_curve(train, validation, test, repeats=2)
-
-
-lc = data()
+lc = load_table(LEARNING_CURVE_PATH)
 st.title("How Much Data Do We Need?")
 st.caption("Training size increases by patients, not rows, to avoid repeated-measures leakage.")
 
 metric = st.selectbox("Metric", ["sensitivity", "precision_ppv", "pr_auc", "false_positive_rate", "clinician_alert_episodes_per_patient_day"])
 summary = lc.groupby(["training_fraction", "training_patients"])[metric].agg(["mean", "std"]).reset_index()
-fig = px.line(summary, x="training_patients", y="mean", markers=True, error_y="std", labels={"mean": metric})
+fig = go.Figure()
+fig.add_trace(go.Scatter(
+    x=summary["training_patients"],
+    y=summary["mean"],
+    error_y=dict(type="data", array=summary["std"].fillna(0)),
+    mode="lines+markers",
+    name=metric,
+))
+fig.update_yaxes(title_text=metric)
+fig.update_xaxes(title_text="training_patients")
 fig.update_layout(height=500, margin=dict(l=10, r=10, t=25, b=10))
 st.plotly_chart(fig, use_container_width=True)
 

@@ -4,27 +4,21 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import streamlit as st
 
-from src.pipeline import build_scored_dataset
+from src.pipeline import load_patient_index, load_patient_timeseries
 
 
 st.set_page_config(page_title="Patient Monitor", layout="wide")
 
 
-@st.cache_data(show_spinner="Generating synthetic patients and scores...")
-def data():
-    scored, _, _ = build_scored_dataset()
-    return scored
-
-
-df = data()
+patient_index = load_patient_index()
 st.title("Patient Monitor")
 st.caption("Synthetic and illustrative. Thresholds, risk tiers, and results are not clinically validated.")
 
 demo_first = ["A_MOVEMENT_DEMO", "B_DETERIORATION_DEMO"]
-patients = demo_first + [p for p in sorted(df["patient_id"].unique()) if p not in demo_first]
+patients = demo_first + [p for p in sorted(patient_index["patient_id"].unique()) if p not in demo_first]
 pid = st.selectbox("Synthetic patient", patients, index=0)
 model = st.radio("Alert overlay", ["Model 1", "Model 2", "Model 3"], index=1, horizontal=True)
-g = df[df["patient_id"] == pid].sort_values("timestamp")
+g = load_patient_timeseries(pid).sort_values("timestamp")
 
 latest = g.iloc[-1]
 m1, m2, m3, m4, m5 = st.columns(5)

@@ -5,10 +5,12 @@ import pandas as pd
 from src.evaluation import group_alert_episodes, metric_table, patient_split, warning_lead_time
 from src.features import add_patient_baselines, add_time_series_features
 from src.generate_data import generate_synthetic_data
+from src.pipeline import ALERT_METRICS_PATH, PATIENT_MONITOR_PATH, SCORED_PARQUET_PATH, load_patient_timeseries
 from src.preprocessing import preprocess_sensor_data
 from src.threshold_model import score_threshold_model
 from src.timeseries_rules import score_timeseries_rules
 from src.statistical_model import choose_model3_threshold, fit_statistical_model
+from src.bias_analysis import SPECS
 
 
 def _featured_demo():
@@ -183,3 +185,37 @@ def test_model3_threshold_is_selected_from_validation_patients():
     threshold, table = choose_model3_threshold(scored, model, min_sensitivity=0.5)
     assert 0.20 <= threshold <= 0.95
     assert "threshold" in table.columns
+
+
+def test_precomputed_alert_metrics_match_current_episode_definitions():
+    assert SCORED_PARQUET_PATH.exists()
+    assert ALERT_METRICS_PATH.exists()
+    scored = pd.read_parquet(SCORED_PARQUET_PATH)
+    saved = pd.read_parquet(ALERT_METRICS_PATH)
+    test = scored[(scored["cohort"] == "A") & (scored["split"] == "test")]
+    live = metric_table(test, SPECS)
+    cols = [
+        "system",
+        "clinician_alert_episodes_per_patient_day",
+        "false_clinician_alert_episodes_per_patient_day",
+        "tier3_checkin_episodes_per_patient_day",
+        "routed_episodes_per_patient_day",
+        "total_alert_episodes",
+        "tier3_checkin_episodes",
+        "total_routed_episodes",
+    ]
+    pd.testing.assert_frame_equal(
+        saved[cols].sort_values("system").reset_index(drop=True),
+        live[cols].sort_values("system").reset_index(drop=True),
+        check_exact=False,
+        rtol=1e-12,
+        atol=1e-12,
+    )
+
+
+def test_patient_timeseries_artifact_matches_combined_monitor_data():
+    assert PATIENT_MONITOR_PATH.exists()
+    combined = pd.read_parquet(PATIENT_MONITOR_PATH)
+    expected = combined[combined["patient_id"] == "A_MOVEMENT_DEMO"].reset_index(drop=True)
+    actual = load_patient_timeseries("A_MOVEMENT_DEMO").reset_index(drop=True)
+    pd.testing.assert_frame_equal(actual, expected)

@@ -69,6 +69,14 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
+The repository includes precomputed Parquet artifacts in `data/` for Streamlit Community Cloud performance. Most pages load deterministic scored data, alert-fatigue metrics, bootstrap intervals, subgroup tables, learning curves, cohort-shift metrics, and calibration outputs from disk instead of rebuilding the full pipeline during page render.
+
+Regenerate deterministic artifacts after changing model or metric code:
+
+```bash
+python -m src.precompute
+```
+
 Run tests:
 
 ```bash

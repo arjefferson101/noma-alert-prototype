@@ -199,7 +199,7 @@ def _curated_patient(patient_id: str, pattern: str) -> pd.DataFrame:
     return df
 
 
-def generate_synthetic_data(n_patients_a: int = 260, n_patients_b: int = 100, seed: int = 42) -> pd.DataFrame:
+def generate_synthetic_data(n_patients_a: int = 120, n_patients_b: int = 50, seed: int = 42) -> pd.DataFrame:
     rng = np.random.default_rng(seed)
     frames = [_curated_patient("A_MOVEMENT_DEMO", "movement"), _curated_patient("B_DETERIORATION_DEMO", "deterioration")]
     minutes = np.arange(0, 4 * 24 * 60, 5)

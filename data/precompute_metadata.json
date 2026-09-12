@@ -1,0 +1,30 @@
+{
+  "n_patients_a_background": 120,
+  "n_patients_b_background": 50,
+  "seed": 42,
+  "rows": 197568,
+  "patients": 172,
+  "model3_threshold": 0.375,
+  "split_counts": {
+    "train": 73,
+    "validation": 24,
+    "test": 25
+  },
+  "outputs": [
+    "age_cohort_bootstrap_ci.parquet",
+    "alert_fatigue_bootstrap_ci.parquet",
+    "alert_fatigue_metrics.parquet",
+    "cohort_shift_metrics.parquet",
+    "learning_curve.parquet",
+    "missingness_by_age_cohort.parquet",
+    "model3_calibration.parquet",
+    "patient_monitor_data.parquet",
+    "patient_monitor_index.parquet",
+    "scored_patient_data.parquet",
+    "subgroup_age_cohort.parquet",
+    "subgroup_baseline_mobility.parquet",
+    "subgroup_discharge_category.parquet",
+    "subgroup_sex.parquet",
+    "synthetic_patient_data.parquet"
+  ]
+}
